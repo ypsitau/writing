@@ -1,20 +1,110 @@
+-------------------------------------------------------------------------------
 1. What initially motivated you to create Gura-lang? Were you trying to solve a specific problem, or exploring a new idea in language design?
 
+グラフ描画ソフトを作ろうとしたことがきっかけです。gnuplot などの著名なソフトは知っていましたし、自分でも使っていましたが、数式の形式で微分操作などを行えるものが欲しかったのです。
+簡易的なスクリプト言語を提供し、関数の定義や変数の管理ができるようなものを構想しました。このとき、例えば y = sin(x) という式を定義して、これをプロットすることを考えます。
+プログラムの内部で x に適切な範囲、間隔の数値を生成して y を計算しながらプロットをすればよいのですが、
+引数 x として配列などの複数の値を受け取れるようにして、それぞれの値の結果をこれもまた配列で返すようにできれば、言語としての汎用性が高まると考えました。これが暗黙的マッピングのスタート地点です。
+
+-------------------------------------------------------------------------------
 2. Gura-lang is described as an iteration-oriented language. Could you explain why you consider iteration such a central concept?
 
+for や while などの構文
+イテレータというデータ構造で表現できます。
+for 構文に :iter というアトリビュートをつけて実行すると、その場でリピート処理をしないでイテレータを返すようになり、遅延実行が可能になります。
+
+-------------------------------------------------------------------------------
 3. When you started developing Gura-lang, were you aware that similar ideas had appeared in languages like Icon or APL? How do you see Gura’s place in that lineage?
 
-4. Gura-lang supports Implicit Mapping and Member Mapping. Could you explain how these mapping mechanisms (implicit and member mapping) affect performance, memory usage, or readability compared with explicit loops or comprehensions in other languages?
+世の中にあるプログラミング言語については、メジャーな 10 種類ほどの言語の他はほとんど何も知りませんでした。Gura と同じようなアプローチをしているものがすでにあるということを知ったのは、
+開発を始めてから 1 年ほどたってからです。
 
+リストとイテレータ
+数値や文字列、これらを内包した構造体
+
+
+-------------------------------------------------------------------------------
+4. Gura-lang supports Implicit Mapping and Member Mapping. Could you explain how these mapping mechanisms (implicit and member mapping) affect performance, memory usage, or readability
+  compared with explicit loops or comprehensions in other languages?
+
+Python に配列の内包表記というものがあり、
+記述方法がかなり特殊です
+Gura ならば通常のプログラムと同じ
+
+-------------------------------------------------------------------------------
 5. Nearly a decade later, parallel and concurrent computing have become more accessible — even in scripting environments.
 How do you see this evolution today, and do you think languages like Gura-lang (or Gurax) are still well-positioned to leverage this paradigm?
 
+おっしゃるとおり、GPU や量子コンピューティングなど、処理を並列化してパフォーマンスを上げる試みが盛んです。
+
+イテレータの形で表現をしておいて、バックグラウンドで演算が行われている
+つまり、イテレータを複数生成すれば、並列処理が自動的に行われることになります。
+
+ただ、私自身、並列処理の知識がほとんどありません。また、並列化にともなって、メモリ資源の競合管理などが必要になり、一人だけで解決できる範疇を超えるように思えます。
+ですから、上に書いたことは夢物語です。でも、実現したい欲求に強く駆られることもしばしばです。
+
+-------------------------------------------------------------------------------
 6. Have you considered extending Gura-lang (or Gurax) to interact with other ecosystems (for example, embedding it as a scripting language within other applications, similar to Lua)?
 
+もともとグラフ描画ソフトのスクリプト言語として開発を始めたので、他のアプリケーションへの組込みは常に意識していました。
+
+過去にハードウェア設計会社に勤めていたことがあり、そこでデジタル信号波形のドローイングソフトを作りました。
+そのとき、そこに Gura を組み込んで、スクリプトによって複数パルスの描画などを自動化できるようにしたのですが、この開発過程を通じてアプリ組込み用途で Gura を活用できる手ごたえを感じました。
+
+ワンボードマイコン
+Raspberry Pi Pico 
+MicroPython
+制御構文が欲しくなることがよくあります。
+Gura はパーサが非常に簡素にできているので、実現できる気がしているのですが、まだ着手はしていません。
+
+-------------------------------------------------------------------------------
 7. You later began working on Gurax. Is it a successor to Gura-lang or a complete redesign? What are the main differences between the two?
 
+はい、Gurax は Gura の後継言語です。Gura はプログラムを構文解析木の形で実行しています。これは実装は容易になるのですが、実行パフォーマンスを高くすることが困難です。
+また、実行コンテキストが C++ のものになってしまうことも問題でした。具体的には、例えば Gura プログラム内で関数呼び出しをした場合でも、内部では C++ の関数呼び出しのメカニズムを使うことになります。
+これですと、C++ コンパイラが確保した限られたスタックメモリ領域を消費することになり、再帰呼び出しなどを行うとすぐにスタックオーバーフローを起こします。
+
+Gurax は、この問題を解決するため、専用インストラクションコードを実行する仮想マシンを実装しました。データ管理や演算、プログラム分岐やジャンプなどを行うインストラクションを用意し、
+スクリプトプログラムをこういったインストラクション列にコンパイルするようにしたのです。これによってパフォーマンスは Gura の 2 倍程度に改善されました。
+でも私が一番うれしかったのは、再帰呼び出しをしてもスタックオーバーフローを起こさなくなったことです。関数呼び出しなどの機構も仮想マシン上で行いますから、スタック管理も独自のものになり、
+これでようやく C++ の縛りを逃れられたと思いました。
+
+Gurax は Gura の後継ではありますが、ほとんどスクラッチから作りなおしました。Gura の開発は、既存のコードに機能追加をしていったので、非効率な実装が多く見られたからです。
+その際、言語が提供する API のネーミングコンベンションを snake case から camel case に変更しました。Gura は Python の実装を強く意識して作成したので、関数の命名などもそれに倣っています。
+snake case を使ったのはその影響ですが、私自身は camel case を普段の開発に使っているので、自分の嗜好に正直になろうと思ったのが動機です。 
+
+-------------------------------------------------------------------------------
 8. Have you seen other people or projects using Gura-lang outside your own tools, such as Gura Shot or Getter Photo?
 
+他の方が Gura でプログラムを作ったという話は聞いたことがありません。とても残念です。
+
+そう、Gura Shot! これに言及してくれたことはとてもうれしいです。Gura Shot は、Gura 言語が実用的なプロジェクトに使えることを実証するために作成したアプリケーションで、
+これを通じて Gura というプログラミング言語を多くの人に知ってもらいたいという思惑もありました。
+
+実際、Gura Shot は日本の大手フリーソフトサイトで紹介され、多くの人に使われるヒット作品になりました。そのサイト以外でもフリーソフトを紹介するムックなどにも多く掲載され、
+ダウンロード数はかなりの数に上ったと思います。具体的なアクセス件数は調べなかったので、ここで数値を挙げることはできないのですが...。
+
+でも、アプリケーションの人気とは裏腹に、それを動かしているスクリプト言語にまで興味を持ってくれる人は一人もいませんでした。
+Gura Shot のプログラムは Gura スクリプトファイルをテキストのままで配布しましたから、テキストエディタさえあればプログラムを読める状態になっていたのです。
+でも、アプリケーションですから、目的のために便利に使えればそれでよいと思うのはごく自然なことですね。
+
+言語の認知度を上げる目的にはかないませんでしたが、このアプリケーションが多くの人に受け入れられたことは、Gura 言語がそういったプログラムを支えられるだけの汎用性を持っていることを実証できたことになります。
+これは、十分満足できる結果でした。
+
+-------------------------------------------------------------------------------
 9. Developing a programming language alone is a long and complex process. What keeps you motivated to continue this path?
 
+アプリケーションの場合は、一定の機能を実装してしまうと機能強化や追加
+
+プログラミング言語は余地が非常に広く、限度がありません。
+
+-------------------------------------------------------------------------------
 10. Finally, what would you like to see happen with Gura-lang (or Gurax) in the future?
+
+スクリプト言語というのは使い捨ての処理を書くのにとても便利です。
+多くの人は Python などを使うと思うのですが、
+私は Gura 以外のスクリプト言語を使えなくなってしまいました。
+
+普段のスクリプティング業務に使っています。
+
+興味を持ってくれる人がいたという事実に非常に感動しています。
