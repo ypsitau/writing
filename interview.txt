@@ -1,0 +1,20 @@
+1. What initially motivated you to create Gura-lang? Were you trying to solve a specific problem, or exploring a new idea in language design?
+
+2. Gura-lang is described as an iteration-oriented language. Could you explain why you consider iteration such a central concept?
+
+3. When you started developing Gura-lang, were you aware that similar ideas had appeared in languages like Icon or APL? How do you see Gura’s place in that lineage?
+
+4. Gura-lang supports Implicit Mapping and Member Mapping. Could you explain how these mapping mechanisms (implicit and member mapping) affect performance, memory usage, or readability compared with explicit loops or comprehensions in other languages?
+
+5. Nearly a decade later, parallel and concurrent computing have become more accessible — even in scripting environments.
+How do you see this evolution today, and do you think languages like Gura-lang (or Gurax) are still well-positioned to leverage this paradigm?
+
+6. Have you considered extending Gura-lang (or Gurax) to interact with other ecosystems (for example, embedding it as a scripting language within other applications, similar to Lua)?
+
+7. You later began working on Gurax. Is it a successor to Gura-lang or a complete redesign? What are the main differences between the two?
+
+8. Have you seen other people or projects using Gura-lang outside your own tools, such as Gura Shot or Getter Photo?
+
+9. Developing a programming language alone is a long and complex process. What keeps you motivated to continue this path?
+
+10. Finally, what would you like to see happen with Gura-lang (or Gurax) in the future?
